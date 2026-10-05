@@ -1,0 +1,84 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    background-color: #F8F4EC;
+    background-image: radial-gradient(#D4C4AE 1px, transparent 1px);
+    background-size: 24px 24px;
+    color: #2D1B0F;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+
+  h1, h2, h3, h4, .font-serif {
+    font-family: 'Playfair Display', Georgia, serif;
+  }
+}
+
+/* Custom subtle scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #F8F4EC;
+}
+::-webkit-scrollbar-thumb {
+  background: #D8C8B0;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #C48B47;
+}
+
+/* Glassmorphism / Timber Panel utilities */
+.glass-panel {
+  background: rgba(246, 239, 226, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 2px solid #D8C8B0;
+  box-shadow: 0 8px 30px rgba(45, 27, 15, 0.06);
+}
+
+.glass-panel-dark {
+  background: rgba(52, 32, 19, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 2px solid #503320;
+}
+
+/* Custom ripple / glow effects */
+.pulse-ring {
+  position: relative;
+}
+.pulse-ring::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
+  border-radius: inherit;
+  background: rgba(163, 92, 51, 0.4);
+  animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+  z-index: -1;
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.08);
+    opacity: 0.4;
+  }
+  100% {
+    transform: scale(1.15);
+    opacity: 0;
+  }
+}
+
+
+

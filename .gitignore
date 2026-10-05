@@ -1,0 +1,45 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Node
+node_modules
+dist
+dist-ssr
+*.local
+
+# Environment & Secrets (Never commit secrets)
+.env
+.env.*
+*.env
+backend/.env
+
+# Python & Django
+__pycache__/
+*.py[cod]
+*$py.class
+*.sqlite3
+db.sqlite3
+backend/db.sqlite3
+venv/
+env/
+.venv/
+ENV/
+backend/media/
+media/
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
