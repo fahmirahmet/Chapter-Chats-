@@ -1,50 +1,86 @@
-# Logs
-logs
+# ==============================================================================
+# Chapter & Chats - Root .gitignore
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 1. Frontend
+# ------------------------------------------------------------------------------
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+frontend/.env*
+!frontend/.env.example
+
+# Generic node patterns
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# ------------------------------------------------------------------------------
+# 2. Backend (Python / Django)
+# ------------------------------------------------------------------------------
+backend/**/__pycache__/
+backend/**/*.py[cod]
+backend/*$py.class
+backend/*venv*/
+backend/env/
+backend/.venv/
+backend/ENV/
+backend/*.sqlite3
+backend/db.sqlite3
+backend/.env*
+!backend/.env.example
+backend/media/
+
+# Generic Python / Django patterns
+__pycache__/
+*.py[cod]
+*$py.class
+*.sqlite3
+db.sqlite3
+venv/
+env/
+.venv/
+ENV/
+media/
+
+# ------------------------------------------------------------------------------
+# 3. Environment & Secrets (Root)
+# ------------------------------------------------------------------------------
+.env
+.env.*
+*.env
+!.env.example
+
+# ------------------------------------------------------------------------------
+# 4. OS & IDE Artifacts
+# ------------------------------------------------------------------------------
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+.vscode/
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.bak
+
+# ------------------------------------------------------------------------------
+# 5. Logs & Temporary Files
+# ------------------------------------------------------------------------------
+logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
-
-# Node / Frontend
-node_modules/
-dist/
-dist-ssr/
-*.local
-frontend/node_modules/
-frontend/dist/
-frontend/dist-ssr/
-
-# Environment & Secrets (Never commit secrets)
-.env
-.env.*
-*.env
-backend/.env
-frontend/.env
-frontend/.env.*
-
-# Python & Django
-__pycache__/
-*.py[cod]
-*$py.class
-*.sqlite3
-db.sqlite3
-backend/db.sqlite3
-venv/
-env/
-.venv/
-ENV/
-backend/media/
-media/
-
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
-.DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
