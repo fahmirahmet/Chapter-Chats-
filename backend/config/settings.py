@@ -14,11 +14,15 @@ for _env_candidate in [BASE_DIR.parent / '.env', BASE_DIR / '.env']:
                     _k, _v = _line.split('=', 1)
                     os.environ.setdefault(_k.strip(), _v.strip())
 
-SECRET_KEY = 'django-insecure-*82k!^nlnre(iyc635vcb#xg=c_cz1989=p%1349q0!uti-hn@'
+SECRET_KEY = os.getenv(
+    'SECRET_KEY',
+    'django-insecure-*82k!^nlnre(iyc635vcb#xg=c_cz1989=p%1349q0!uti-hn@'
+)
 
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'True').lower() in ('true', '1', 't', 'yes')
 
-ALLOWED_HOSTS = ['*']
+_allowed_hosts_env = os.getenv('ALLOWED_HOSTS', '*')
+ALLOWED_HOSTS = [h.strip() for h in _allowed_hosts_env.split(',') if h.strip()]
 
 # Custom User Model
 AUTH_USER_MODEL = 'accounts.User'
@@ -74,12 +78,26 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+# Database Configuration
+DB_ENGINE = os.getenv('DB_ENGINE', 'django.db.backends.sqlite3')
+if DB_ENGINE == 'django.db.backends.sqlite3':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / os.getenv('DB_NAME', 'db.sqlite3'),
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': DB_ENGINE,
+            'NAME': os.getenv('DB_NAME', 'chapter_and_chats'),
+            'USER': os.getenv('DB_USER', ''),
+            'PASSWORD': os.getenv('DB_PASSWORD', ''),
+            'HOST': os.getenv('DB_HOST', 'localhost'),
+            'PORT': os.getenv('DB_PORT', ''),
+        }
+    }
 
 AUTH_PASSWORD_VALIDATORS = [
     { 'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator' },
@@ -101,11 +119,17 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # CORS Configuration
+_cors_origins_env = os.getenv(
+    'CORS_ALLOWED_ORIGINS',
+    'http://localhost:5173,http://127.0.0.1:5173'
+)
 CORS_ALLOWED_ORIGINS = [
-    'http://localhost:5173',
-    'http://127.0.0.1:5173',
+    origin.strip() for origin in _cors_origins_env.split(',') if origin.strip()
 ]
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = os.getenv(
+    'CORS_ALLOW_ALL_ORIGINS',
+    'True' if DEBUG else 'False'
+).lower() in ('true', '1', 't', 'yes')
 
 # REST Framework Configuration
 REST_FRAMEWORK = {
@@ -152,11 +176,16 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 # Telegram Bot Authentication Configuration
-TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN', '8890123009:AAHShvtqB7M4fFmpX6GvjnJyggDxnTvfg6A')
+TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN', '')
 TELEGRAM_BOT_USERNAME = os.getenv('TELEGRAM_BOT_USERNAME', 'chapter_and_chats_bot')
 
-# Email Backend Configuration (Console backend for testing and development)
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-DEFAULT_FROM_EMAIL = 'Chapter & Chats <noreply@chapterandchats.org>'
-PASSWORD_RESET_TIMEOUT = 1800  # 30 minutes expiry for signed tokens
+# Email Backend Configuration (Console backend for testing/dev, SMTP configurable)
+EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'Chapter & Chats <noreply@chapterandchats.org>')
+EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
+EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True').lower() in ('true', '1', 't', 'yes')
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
+PASSWORD_RESET_TIMEOUT = int(os.getenv('PASSWORD_RESET_TIMEOUT', 1800))  # 30 minutes expiry for signed tokens
 

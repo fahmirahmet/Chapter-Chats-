@@ -8,7 +8,7 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
-BOT_TOKEN = getattr(settings, 'TELEGRAM_BOT_TOKEN', '8890123009:AAHShvtqB7M4fFmpX6GvjnJyggDxnTvfg6A') or '8890123009:AAHShvtqB7M4fFmpX6GvjnJyggDxnTvfg6A'
+BOT_TOKEN = getattr(settings, 'TELEGRAM_BOT_TOKEN', '') or ''
 BASE_URL = f"https://api.telegram.org/bot{BOT_TOKEN}"
 
 
@@ -16,6 +16,11 @@ class Command(BaseCommand):
     help = "Runs Telegram Bot polling listener to capture user chat_ids and deliver verification codes."
 
     def handle(self, *args, **options):
+        if not BOT_TOKEN:
+            self.stderr.write(self.style.ERROR(
+                "Error: TELEGRAM_BOT_TOKEN is not configured in .env or settings."
+            ))
+            return
         try:
             sys.stdout.reconfigure(line_buffering=True)
             sys.stderr.reconfigure(line_buffering=True)

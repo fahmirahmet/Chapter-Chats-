@@ -16,7 +16,7 @@ def generate_verification_code():
 
 
 def get_telegram_config():
-    bot_token = getattr(settings, 'TELEGRAM_BOT_TOKEN', '') or '8890123009:AAHShvtqB7M4fFmpX6GvjnJyggDxnTvfg6A'
+    bot_token = getattr(settings, 'TELEGRAM_BOT_TOKEN', '') or ''
     bot_username = getattr(settings, 'TELEGRAM_BOT_USERNAME', 'chapter_and_chats_bot') or 'chapter_and_chats_bot'
     # Strip any leading @ if present
     bot_username = bot_username.lstrip('@')
