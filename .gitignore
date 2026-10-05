@@ -7,17 +7,22 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# Node
-node_modules
-dist
-dist-ssr
+# Node / Frontend
+node_modules/
+dist/
+dist-ssr/
 *.local
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
 
 # Environment & Secrets (Never commit secrets)
 .env
 .env.*
 *.env
 backend/.env
+frontend/.env
+frontend/.env.*
 
 # Python & Django
 __pycache__/
