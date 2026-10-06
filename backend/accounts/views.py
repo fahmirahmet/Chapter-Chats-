@@ -13,6 +13,7 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from rest_framework_simplejwt.tokens import RefreshToken
 import logging
+import os, random, requests
 
 from .permissions import IsPresidentOrVicePresident
 from .models import User, MembershipApplication, FinanceRecord, PresidentialLineage, ExecutiveLeader
@@ -502,39 +503,66 @@ class PasswordResetConfirmView(APIView):
 
 class TelegramWebhookView(APIView):
     """
-    Webhook receiver for Telegram Bot updates.
-    Handles /start <phone> commands or contact cards to link chat_id to member.
+    Autonomous Telegram webhook receiver.
+    Receives Telegram webhook updates (POST requests) and sends 6-digit verification codes.
     """
     permission_classes = [permissions.AllowAny]
 
     def post(self, request):
         data = request.data
-        message = data.get('message', {})
-        text = str(message.get('text', '')).strip()
-        chat = message.get('chat', {})
-        chat_id = chat.get('id')
-        contact = message.get('contact', {})
+        message = data.get("message", {})
+        text = str(message.get("text", "")).strip()
+        chat_id = message.get("chat", {}).get("id")
+        contact = message.get("contact", {})
 
         if not chat_id:
-            return Response({'ok': True})
+            return Response({"status": "ignored"})
 
-        phone_to_link = None
-        if contact and contact.get('phone_number'):
-            phone_to_link = contact.get('phone_number')
-        elif text.startswith('/start'):
+        if text.startswith("/start") or contact:
             parts = text.split()
+            phone = None
             if len(parts) > 1:
-                phone_to_link = parts[1]
+                phone = parts[1].replace("+", "").replace("-", "")
+            elif contact and contact.get("phone_number"):
+                phone = str(contact.get("phone_number")).replace("+", "").replace("-", "")
 
-        if phone_to_link:
-            user = link_telegram_chat(phone_to_link, chat_id)
+            user = None
+            if phone:
+                search_digits = phone[-9:] if len(phone) >= 9 else phone
+                user = User.objects.filter(phone_number__endswith=search_digits).first()
+            if not user:
+                user = User.objects.filter(telegram_chat_id=str(chat_id)).first()
+
+            code = f"{random.randint(100000, 999999)}"
+            bot_token = os.getenv("TELEGRAM_BOT_TOKEN")
+
             if user:
-                code = user.verification_code or generate_verification_code()
+                user.telegram_chat_id = str(chat_id)
                 user.verification_code = code
-                user.save(update_fields=['verification_code'])
-                send_telegram_verification(user.phone_number, code)
+                user.save(update_fields=["telegram_chat_id", "verification_code"])
 
-        return Response({'ok': True})
+                reply = (
+                    f"📚 *Chapter & Chats Verification*\n\n"
+                    f"Hello {user.full_name or user.username}!\n"
+                    f"Your 6-digit code is: `{code}`\n\n"
+                    f"Enter this on the website to verify your account."
+                )
+            else:
+                reply = "📚 *Chapter & Chats Bot*\n\nPlease register on the Chapter & Chats platform first."
+
+            if bot_token:
+                try:
+                    requests.post(
+                        f"https://api.telegram.org/bot{bot_token}/sendMessage",
+                        json={"chat_id": chat_id, "text": reply, "parse_mode": "Markdown"},
+                        timeout=10
+                    )
+                except Exception as e:
+                    logger.error(f"Failed to send Telegram message to {chat_id}: {e}")
+            else:
+                logger.error("TELEGRAM_BOT_TOKEN environment variable is not configured.")
+
+        return Response({"status": "ok"})
 
 
 class AdminMembershipApplicationsView(APIView):

@@ -100,7 +100,7 @@ urlpatterns = [
     # Telegram Verification & Bot Webhook Endpoints
     path('api/accounts/send-verification/', SendTelegramVerificationView.as_view(), name='send_telegram_verification'),
     path('api/accounts/verify-code/', VerifyTelegramCodeView.as_view(), name='verify_telegram_code'),
-    path('api/accounts/telegram-webhook/', TelegramWebhookView.as_view(), name='telegram_webhook'),
+    path('api/telegram-webhook/', TelegramWebhookView.as_view(), name='telegram_webhook'),
 
     # User Profile & Membership Intake Endpoints
     path('api/users/me/', UserProfileView.as_view(), name='user_profile'),

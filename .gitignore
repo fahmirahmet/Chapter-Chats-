@@ -33,6 +33,8 @@ backend/db.sqlite3
 backend/.env*
 !backend/.env.example
 backend/media/
+backend/staticfiles/
+staticfiles/
 
 # Generic Python / Django patterns
 __pycache__/
