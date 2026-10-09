@@ -180,6 +180,7 @@ export function AuthProvider({ children }) {
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
     localStorage.removeItem('user');
+    localStorage.removeItem('cached_current_cycle');
     setTokens(null);
     setUser(null);
     setIsAuthenticated(false);

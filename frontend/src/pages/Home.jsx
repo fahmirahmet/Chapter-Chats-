@@ -12,13 +12,65 @@ import SaturdayStoryBanner from '../components/SaturdayStoryBanner';
 import HomeSnapshotGrid from '../components/HomeSnapshotGrid';
 import ThursdayQuizModal from '../components/ThursdayQuizModal';
 
+// ── Helper: build normalised cycleData from raw API response ──────────────
+function buildCycleData(raw, userPageRead) {
+  const data = raw?.activeCycle || raw;
+  if (!data || !data.book) return null;
+  const bookObj = data.book || {};
+  return {
+    activeCycle: {
+      cycleNumber: data.id || 1,
+      targetTuesdayMeeting: data.meeting_date || data.start_date || null,
+      userReadingProgressPages: userPageRead || 0,
+      book: {
+        title: bookObj.title || 'Cycle Reading Selection',
+        author: bookObj.author || 'Selected Author',
+        totalPages: Number(bookObj.total_pages || bookObj.totalPages) || 300,
+        genre: bookObj.genre || 'Curated Literature',
+        synopsis: bookObj.synopsis || 'Reading cycle targets will be reviewed at the upcoming Tuesday meeting.',
+        coverImage: bookObj.cover_image || bookObj.cover_url || null,
+      },
+      milestones: data.milestones || {
+        week1: { label: 'Week 1', pages: `Pages 1–${Math.round((bookObj.total_pages || 300) * 0.33)}` },
+        week2: { label: 'Week 2', pages: `Pages ${Math.round((bookObj.total_pages || 300) * 0.33) + 1}–${Math.round((bookObj.total_pages || 300) * 0.66)}` },
+        week3: { label: 'Week 3', pages: `Pages ${Math.round((bookObj.total_pages || 300) * 0.66) + 1}–${bookObj.total_pages || 300}` },
+      },
+    }
+  };
+}
+
+// ── Lightweight skeleton placeholder for cycle hero card ───────────────────
+function CycleSkeleton() {
+  return (
+    <div className="animate-pulse rounded-3xl bg-[#EFE7DA] border-2 border-[#D8C8B0] p-6 sm:p-8 space-y-5">
+      <div className="flex items-start gap-5">
+        <div className="w-24 h-36 sm:w-28 sm:h-40 rounded-2xl bg-[#D8C8B0]/60 shrink-0" />
+        <div className="flex-1 space-y-3 pt-1">
+          <div className="h-3 w-24 rounded-full bg-[#D8C8B0]/60" />
+          <div className="h-5 w-48 rounded-full bg-[#D8C8B0]/80" />
+          <div className="h-4 w-32 rounded-full bg-[#D8C8B0]/50" />
+          <div className="h-3 w-full rounded-full bg-[#D8C8B0]/40 mt-3" />
+          <div className="h-3 w-3/4 rounded-full bg-[#D8C8B0]/40" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Home() {
   const outletContext = useOutletContext() || {};
   const openCheckInModal = outletContext.openCheckInModal || (() => {});
   const { user } = useAuth();
 
-  // ── Core hero state ──────────────────────────────────────────────────────
-  const [cycleData, setCycleData] = useState(null);
+  // ── Core hero state (initialise from localStorage cache if available) ────
+  const [cycleData, setCycleData] = useState(() => {
+    try {
+      const cached = localStorage.getItem('cached_current_cycle');
+      if (cached) return JSON.parse(cached);
+    } catch { /* corrupt cache, ignore */ }
+    return null;
+  });
+  const [cycleLoading, setCycleLoading] = useState(!cycleData);
   const [activePoll, setActivePoll] = useState(null);
   const [activeQuiz, setActiveQuiz] = useState(null);
 
@@ -31,7 +83,7 @@ export default function Home() {
   // ── Quiz modal state ─────────────────────────────────────────────────────
   const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
 
-  // ── Data fetching ────────────────────────────────────────────────────────
+  // ── Data fetching (stale-while-revalidate for cycle) ─────────────────────
   useEffect(() => {
     let isMounted = true;
 
@@ -45,40 +97,25 @@ export default function Home() {
 
       if (!isMounted) return;
 
-      // Cycle
+      // Cycle — build, update state + persist to localStorage
       if (cycleRes.status === 'fulfilled') {
         const raw = cycleRes.value?.data;
-        const data = raw?.activeCycle || raw;
-        if (data && data.book) {
-          const bookObj = data.book || {};
-          setCycleData({
-            activeCycle: {
-              cycleNumber: data.id || 1,
-              targetTuesdayMeeting: data.meeting_date || data.start_date || null,
-              userReadingProgressPages: user?.current_page_read || 0,
-              book: {
-                title: bookObj.title || 'Cycle Reading Selection',
-                author: bookObj.author || 'Selected Author',
-                totalPages: Number(bookObj.total_pages || bookObj.totalPages) || 300,
-                genre: bookObj.genre || 'Curated Literature',
-                synopsis: bookObj.synopsis || 'Reading cycle targets will be reviewed at the upcoming Tuesday meeting.',
-                coverImage: bookObj.cover_image || bookObj.cover_url || null,
-              },
-              milestones: data.milestones || {
-                week1: { label: 'Week 1', pages: `Pages 1–${Math.round((bookObj.total_pages || 300) * 0.33)}` },
-                week2: { label: 'Week 2', pages: `Pages ${Math.round((bookObj.total_pages || 300) * 0.33) + 1}–${Math.round((bookObj.total_pages || 300) * 0.66)}` },
-                week3: { label: 'Week 3', pages: `Pages ${Math.round((bookObj.total_pages || 300) * 0.66) + 1}–${bookObj.total_pages || 300}` },
-              },
-            }
-          });
-          if (raw?.announcements && Array.isArray(raw.announcements)) {
-            setAnnouncements(raw.announcements);
-          }
+        const freshCycle = buildCycleData(raw, user?.current_page_read);
+        setCycleData(freshCycle);
+        setCycleLoading(false);
+        if (freshCycle) {
+          try { localStorage.setItem('cached_current_cycle', JSON.stringify(freshCycle)); }
+          catch { /* quota exceeded, ignore */ }
         } else {
-          setCycleData(null);
+          localStorage.removeItem('cached_current_cycle');
+        }
+        if (raw?.announcements && Array.isArray(raw.announcements)) {
+          setAnnouncements(raw.announcements);
         }
       } else {
-        setCycleData(null);
+        // Network failed — keep cached data if present, clear loading
+        setCycleData(prev => prev ?? null);
+        setCycleLoading(false);
       }
 
       // Active Poll — API returns { poll: {...}, ...spread } or just the poll object
@@ -311,16 +348,20 @@ export default function Home() {
       )}
 
       {/* ── Hero State Machine: Active Sprint | Active Poll | Idle ── */}
-      <HeroCurrentlyReading
-        cycleData={cycleData}
-        activePoll={activePoll}
-        activeQuiz={activeQuiz}
-        user={user}
-        onOpenCheckIn={openCheckInModal}
-        onVote={handleVote}
-        onOpenQuiz={handleOpenQuiz}
-        onDeletePoll={handleDeletePoll}
-      />
+      {cycleLoading && !cycleData ? (
+        <CycleSkeleton />
+      ) : (
+        <HeroCurrentlyReading
+          cycleData={cycleData}
+          activePoll={activePoll}
+          activeQuiz={activeQuiz}
+          user={user}
+          onOpenCheckIn={openCheckInModal}
+          onVote={handleVote}
+          onOpenQuiz={handleOpenQuiz}
+          onDeletePoll={handleDeletePoll}
+        />
+      )}
 
       {/* Saturday Story Banner */}
       <SaturdayStoryBanner storyData={winningStoryOfWeek} />

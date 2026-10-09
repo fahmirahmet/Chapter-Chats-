@@ -162,14 +162,14 @@ export default function Navbar({ onOpenCheckIn }) {
               })}
             </nav>
 
-            {/* 3. Right: Check In + User Profile Dropdown */}
+            {/* 3. Right: Check In + Auth CTAs + User Profile Dropdown */}
             <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
               
-              {/* Tuesday Meeting Check-In CTA */}
+              {/* Tuesday Meeting Check-In CTA — Desktop only (hidden on mobile; accessible in drawer) */}
               <button
                 onClick={onOpenCheckIn}
                 type="button"
-                className="relative inline-flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-[#A35C33] hover:bg-[#8B4C28] text-white border border-[#6E3618] font-bold text-xs sm:text-sm shadow-md transition-all duration-200 transform active:scale-95 group pulse-ring cursor-pointer shrink-0"
+                className="relative hidden lg:inline-flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-[#A35C33] hover:bg-[#8B4C28] text-white border border-[#6E3618] font-bold text-xs sm:text-sm shadow-md transition-all duration-200 transform active:scale-95 group pulse-ring cursor-pointer shrink-0"
                 title="Perform Tuesday Meeting Check-In"
               >
                 <span className="relative flex h-2 w-2 sm:h-2.5 sm:w-2.5">
@@ -179,6 +179,18 @@ export default function Navbar({ onOpenCheckIn }) {
                 <ShieldCheck className="w-4 h-4 text-white transition-colors" />
                 <span className="font-bold">Check In</span>
               </button>
+
+              {/* Mobile-only Auth CTA — visible beside hamburger on small screens */}
+              {!user ? (
+                <button
+                  type="button"
+                  onClick={() => openAuth('member')}
+                  className="lg:hidden flex items-center gap-1.5 px-3 py-2 rounded-xl border-2 border-[#D8C8B0] bg-[#F6EFE2] text-[#2D1B0F] hover:bg-[#EFE7DA] text-xs font-bold transition-all duration-200 cursor-pointer shadow-xs shrink-0"
+                >
+                  <LogIn className="w-4 h-4 text-[#A35C33]" />
+                  <span>Sign In</span>
+                </button>
+              ) : null}
 
               {/* AUTH STATES: Guest vs Member vs Admin */}
               {!user ? (
