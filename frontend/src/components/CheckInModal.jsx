@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X, ShieldCheck, Clock, Calendar, AlertCircle, CheckCircle2, Flame, Key, ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
 import apiClient from '../api/client';
 import { useAuth } from '../context/AuthContext';
@@ -99,16 +100,16 @@ export default function CheckInModal({ isOpen, onClose }) {
     setActiveCode(nextCode);
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop */}
-      <div 
-        onClick={() => { resetModal(); onClose(); }}
-        className="fixed inset-0 bg-brand-dark/70 backdrop-blur-sm transition-opacity animate-fade-in"
-      />
-
+  const modalContent = (
+    <div 
+      onClick={() => { resetModal(); onClose(); }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm overflow-y-auto"
+    >
       {/* Modal Card */}
-      <div className="relative w-full max-w-md bg-brand-surface rounded-3xl shadow-2xl border-2 border-brand-accent/50 p-6 sm:p-8 z-10 animate-slide-down">
+      <div 
+        onClick={(e) => e.stopPropagation()}
+        className="relative w-full max-w-md my-auto bg-brand-surface rounded-2xl shadow-2xl border-2 border-brand-accent/50 p-6 sm:p-8 z-10 animate-slide-down"
+      >
         {/* Close Button */}
         <button
           onClick={() => { resetModal(); onClose(); }}
@@ -255,4 +256,6 @@ export default function CheckInModal({ isOpen, onClose }) {
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : modalContent;
 }

@@ -1,19 +1,20 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { X, BookOpen, FileText, Download, HelpCircle, Sparkles, CheckCircle2, Calendar } from 'lucide-react';
 
 export default function ReadingGuideModal({ book, isOpen, onClose, onDownloadGuide }) {
   if (!isOpen || !book) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop */}
-      <div 
-        onClick={onClose}
-        className="fixed inset-0 bg-brand-dark/65 backdrop-blur-sm transition-opacity animate-fade-in"
-      />
-
+  const modalContent = (
+    <div 
+      onClick={onClose}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm overflow-y-auto"
+    >
       {/* Modal Content Container */}
-      <div className="relative w-full max-w-2xl max-h-[90vh] bg-brand-surface rounded-3xl shadow-2xl border-2 border-brand-accent/50 overflow-hidden z-10 flex flex-col animate-slide-down">
+      <div 
+        onClick={(e) => e.stopPropagation()}
+        className="relative w-full max-w-2xl max-h-[90vh] my-auto bg-brand-surface rounded-2xl shadow-2xl border-2 border-brand-accent/50 overflow-hidden z-10 flex flex-col animate-slide-down"
+      >
         {/* Modal Header */}
         <div className="bg-brand-dark text-brand-surface p-6 border-b border-brand-accent/30 relative">
           <button
@@ -124,4 +125,6 @@ export default function ReadingGuideModal({ book, isOpen, onClose, onDownloadGui
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : modalContent;
 }

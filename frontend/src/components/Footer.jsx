@@ -10,7 +10,6 @@ import {
   Heart, 
   Mail, 
   ExternalLink,
-  Award,
   BookMarked
 } from 'lucide-react';
 
@@ -29,10 +28,6 @@ export default function Footer() {
             <p className="text-xs text-brand-cream/80 leading-relaxed">
               Digitizing our university reading community through structured 3-week reading sprints, downloadable study guides, and in-person Tuesday reviews.
             </p>
-            <div className="flex items-center gap-2 text-xs text-brand-cream font-medium">
-              <Award className="w-4 h-4 text-brand-accent" />
-              <span>IEEE Std 830-1998 Certified Platform Blueprint</span>
-            </div>
           </div>
 
           {/* Col 2: In-Person Meeting Schedule Banner */}
@@ -115,7 +110,7 @@ export default function Footer() {
 
         {/* Footer Bottom copyright & info */}
         <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-brand-cream/60">
-          <p>© {new Date().getFullYear()} Chapters &amp; Chats Book Club. Built for IEEE Std 830 compliance.</p>
+          <p>© {new Date().getFullYear()} Chapters &amp; Chats Book Club.</p>
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1 text-brand-cream">
               Made with <Heart className="w-3.5 h-3.5 text-brand-primary fill-brand-primary inline" /> for book lovers

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { NavLink } from 'react-router-dom';
 import { 
   Info, 
@@ -940,13 +941,15 @@ export default function About() {
         )}
 
         {/* Lightbox Zoom Modal */}
-        {selectedPhoto && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+        {selectedPhoto && typeof document !== 'undefined' && createPortal(
+          <div 
+            onClick={() => setSelectedPhoto(null)}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm overflow-y-auto"
+          >
             <div 
-              onClick={() => setSelectedPhoto(null)} 
-              className="fixed inset-0 bg-[#1A0E06]/85 backdrop-blur-md transition-opacity animate-fade-in"
-            />
-            <div className="relative max-w-3xl w-full bg-[#F8F4EC] rounded-3xl border-2 border-[#C48B47] shadow-2xl overflow-hidden z-10 animate-slide-down">
+              onClick={(e) => e.stopPropagation()}
+              className="relative w-full max-w-3xl my-auto bg-[#F8F4EC] rounded-2xl border-2 border-[#C48B47] shadow-2xl overflow-hidden z-10 animate-slide-down"
+            >
               <button
                 onClick={() => setSelectedPhoto(null)}
                 className="absolute top-4 right-4 p-2 rounded-full bg-[#2D1B0F]/80 text-[#FFF8EE] hover:bg-[#2D1B0F] transition-colors cursor-pointer z-20"
@@ -995,7 +998,8 @@ export default function About() {
                 </div>
               </div>
             </div>
-          </div>
+          </div>,
+          document.body
         )}
 
         {/* Delete Confirmation Modal */}
@@ -1243,9 +1247,15 @@ export default function About() {
       )}
 
       {/* Presidential Lineage Modal */}
-      {lineageModalOpen && (
-        <div className="fixed inset-0 z-50 bg-[#1A0E06]/70 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-fade-in">
-          <div className="bg-[#FAF6F0] rounded-3xl border-2 border-[#D8C8B0] p-6 sm:p-8 max-w-lg w-full shadow-2xl space-y-5 my-8">
+      {lineageModalOpen && typeof document !== 'undefined' && createPortal(
+        <div 
+          onClick={() => setLineageModalOpen(false)}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm overflow-y-auto"
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="relative bg-[#FAF6F0] rounded-2xl border-2 border-[#D8C8B0] p-6 sm:p-8 max-w-lg w-full my-auto shadow-2xl space-y-5 z-10 animate-slide-down"
+          >
             <div className="flex items-center justify-between border-b border-[#D8C8B0] pb-3">
               <div className="flex items-center gap-2">
                 <Award className="w-5 h-5 text-[#A35C33]" />
@@ -1368,13 +1378,20 @@ export default function About() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Current Executive Leadership Modal */}
-      {leadershipModalOpen && (
-        <div className="fixed inset-0 z-50 bg-[#1A0E06]/70 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-fade-in">
-          <div className="bg-[#FAF6F0] rounded-3xl border-2 border-[#D8C8B0] p-6 sm:p-8 max-w-lg w-full shadow-2xl space-y-5 my-8">
+      {leadershipModalOpen && typeof document !== 'undefined' && createPortal(
+        <div 
+          onClick={() => setLeadershipModalOpen(false)}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm overflow-y-auto"
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="relative bg-[#FAF6F0] rounded-2xl border-2 border-[#D8C8B0] p-6 sm:p-8 max-w-lg w-full my-auto shadow-2xl space-y-5 z-10 animate-slide-down"
+          >
             <div className="flex items-center justify-between border-b border-[#D8C8B0] pb-3">
               <div className="flex items-center gap-2">
                 <Users className="w-5 h-5 text-[#A35C33]" />
@@ -1510,7 +1527,8 @@ export default function About() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Delete Item Confirmation Modal */}

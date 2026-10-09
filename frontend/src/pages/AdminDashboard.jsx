@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useSearchParams, NavLink } from 'react-router-dom';
 import { 
   Shield, 
@@ -3413,13 +3414,15 @@ export default function AdminDashboard() {
       )}
 
       {/* QUICK-ADD MEMBER MODAL */}
-      {showAddMemberModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {showAddMemberModal && typeof document !== 'undefined' && createPortal(
+        <div 
+          onClick={() => setShowAddMemberModal(false)}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm overflow-y-auto"
+        >
           <div 
-            onClick={() => setShowAddMemberModal(false)} 
-            className="fixed inset-0 bg-[#2D1B0F]/60 backdrop-blur-sm animate-fade-in" 
-          />
-          <div className="relative w-full max-w-lg bg-[#F8F4EC] rounded-3xl border-2 border-[#D8C8B0] shadow-2xl p-6 sm:p-8 space-y-5 z-10 animate-slide-down text-[#2D1B0F]">
+            onClick={(e) => e.stopPropagation()}
+            className="relative w-full max-w-lg my-auto bg-[#F8F4EC] rounded-2xl border-2 border-[#D8C8B0] shadow-2xl p-6 sm:p-8 space-y-5 z-10 animate-slide-down text-[#2D1B0F]"
+          >
             
             <div className="flex items-center justify-between pb-3 border-b border-[#D8C8B0]">
               <div className="flex items-center gap-2.5">
@@ -3603,17 +3606,20 @@ export default function AdminDashboard() {
               </form>
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* MODAL 1: APPOINT EXECUTIVE OFFICER (President/Owner Desk) */}
-      {roleModalUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {roleModalUser && typeof document !== 'undefined' && createPortal(
+        <div 
+          onClick={() => setRoleModalUser(null)}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm overflow-y-auto"
+        >
           <div 
-            onClick={() => setRoleModalUser(null)} 
-            className="fixed inset-0 bg-[#2D1B0F]/60 backdrop-blur-sm animate-fade-in" 
-          />
-          <div className="relative w-full max-w-lg bg-[#F8F4EC] rounded-3xl border-2 border-[#D8C8B0] shadow-2xl p-6 sm:p-8 space-y-5 z-10 animate-slide-down text-[#2D1B0F]">
+            onClick={(e) => e.stopPropagation()}
+            className="relative w-full max-w-lg my-auto bg-[#F8F4EC] rounded-2xl border-2 border-[#D8C8B0] shadow-2xl p-6 sm:p-8 space-y-5 z-10 animate-slide-down text-[#2D1B0F]"
+          >
             
             <div className="flex items-center justify-between pb-3 border-b border-[#D8C8B0]">
               <div className="flex items-center gap-2.5">
@@ -3720,17 +3726,20 @@ export default function AdminDashboard() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* MODAL 2: LOG TREASURY TRANSACTION */}
-      {isFinanceModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {isFinanceModalOpen && typeof document !== 'undefined' && createPortal(
+        <div 
+          onClick={() => setIsFinanceModalOpen(false)}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm overflow-y-auto"
+        >
           <div 
-            onClick={() => setIsFinanceModalOpen(false)} 
-            className="fixed inset-0 bg-[#2D1B0F]/60 backdrop-blur-sm animate-fade-in" 
-          />
-          <div className="relative w-full max-w-lg bg-[#F8F4EC] rounded-3xl border-2 border-[#D8C8B0] shadow-2xl p-6 sm:p-8 space-y-5 z-10 animate-slide-down text-[#2D1B0F]">
+            onClick={(e) => e.stopPropagation()}
+            className="relative w-full max-w-lg my-auto bg-[#F8F4EC] rounded-2xl border-2 border-[#D8C8B0] shadow-2xl p-6 sm:p-8 space-y-5 z-10 animate-slide-down text-[#2D1B0F]"
+          >
             
             <div className="flex items-center justify-between pb-3 border-b border-[#D8C8B0]">
               <div className="flex items-center gap-2.5">
@@ -3854,7 +3863,8 @@ export default function AdminDashboard() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
     </div>

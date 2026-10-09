@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { AlertTriangle, Trash2, X, Loader2 } from 'lucide-react';
 
 export default function DeleteConfirmModal({
@@ -14,16 +15,16 @@ export default function DeleteConfirmModal({
 }) {
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
-      {/* Backdrop */}
-      <div 
-        onClick={!isDeleting ? onClose : undefined} 
-        className="fixed inset-0 bg-[#1E110A]/75 backdrop-blur-xs transition-opacity animate-fade-in"
-      />
-
+  const modalNode = (
+    <div 
+      onClick={!isDeleting ? onClose : undefined}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm overflow-y-auto"
+    >
       {/* Modal Dialog */}
-      <div className="relative w-full max-w-md bg-[#F8F4EC] rounded-3xl border-2 border-[#D8C8B0] shadow-2xl overflow-hidden z-10 my-auto animate-slide-down text-[#2D1B0F]">
+      <div 
+        onClick={(e) => e.stopPropagation()}
+        className="relative w-full max-w-md my-auto bg-[#F8F4EC] rounded-2xl border-2 border-[#D8C8B0] shadow-2xl overflow-hidden text-[#2D1B0F] animate-slide-down"
+      >
         {/* Header Ribbon */}
         <div className="bg-[#2D1B0F] text-[#F8F4EC] p-5 flex items-center justify-between border-b-2 border-[#C48B47]/30">
           <div className="flex items-center gap-2.5">
@@ -103,4 +104,6 @@ export default function DeleteConfirmModal({
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modalNode, document.body) : modalNode;
 }

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useSearchParams, NavLink } from 'react-router-dom';
 import { 
   MessageSquare, 
@@ -1675,9 +1676,15 @@ export default function Discussions() {
       )}
 
       {/* Start New Discussion Thread Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-[#1E110A]/70 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
-          <div className="bg-[#F8F4EC] rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl border-2 border-[#D8C8B0] space-y-5 animate-scale-in max-h-[90vh] overflow-y-auto">
+      {isModalOpen && typeof document !== 'undefined' && createPortal(
+        <div 
+          onClick={() => setIsModalOpen(false)}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm overflow-y-auto"
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="relative bg-[#F8F4EC] rounded-2xl max-w-xl w-full my-auto p-6 sm:p-8 shadow-2xl border-2 border-[#D8C8B0] space-y-5 animate-slide-down max-h-[90vh] overflow-y-auto z-10"
+          >
             <div className="flex items-center justify-between border-b border-[#D8C8B0] pb-3.5">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-xl bg-[#A35C33] flex items-center justify-center text-white">
@@ -1782,13 +1789,20 @@ export default function Discussions() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Executive Create Book Poll Modal */}
-      {isCreatePollOpen && (
-        <div className="fixed inset-0 z-50 bg-[#1E110A]/70 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
-          <div className="bg-[#F8F4EC] rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border-2 border-[#D8C8B0] space-y-5 animate-scale-in max-h-[90vh] overflow-y-auto">
+      {isCreatePollOpen && typeof document !== 'undefined' && createPortal(
+        <div 
+          onClick={() => setIsCreatePollOpen(false)}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm overflow-y-auto"
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="relative bg-[#F8F4EC] rounded-2xl max-w-2xl w-full my-auto p-6 sm:p-8 shadow-2xl border-2 border-[#D8C8B0] space-y-5 animate-slide-down max-h-[90vh] overflow-y-auto z-10"
+          >
             <div className="flex items-center justify-between border-b border-[#D8C8B0] pb-3.5">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-xl bg-[#2D1B0F] flex items-center justify-center text-[#C48B47]">
@@ -1959,7 +1973,8 @@ export default function Discussions() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Report Content Modal */}

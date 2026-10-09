@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { NavLink } from 'react-router-dom';
 import { 
   BookOpen, 
@@ -767,9 +768,15 @@ export default function BookHouse() {
       </section>
 
       {/* Executive Direct PDF Book Upload Modal */}
-      {showUploadModal && (
-        <div className="fixed inset-0 z-50 bg-[#1E110A]/70 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
-          <div className="bg-[#F8F4EC] rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border-2 border-[#D8C8B0] space-y-5 animate-scale-in max-h-[90vh] overflow-y-auto">
+      {showUploadModal && typeof document !== 'undefined' && createPortal(
+        <div 
+          onClick={() => setShowUploadModal(false)}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm overflow-y-auto"
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="relative bg-[#F8F4EC] rounded-2xl max-w-2xl w-full my-auto p-6 sm:p-8 shadow-2xl border-2 border-[#D8C8B0] space-y-5 animate-slide-down max-h-[90vh] overflow-y-auto z-10"
+          >
             {/* Modal Header */}
             <div className="flex items-center justify-between border-b border-[#D8C8B0] pb-3.5">
               <div className="flex items-center gap-2.5">
@@ -981,7 +988,8 @@ export default function BookHouse() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Reading Guide Worksheet Modal */}

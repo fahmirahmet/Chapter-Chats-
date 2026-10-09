@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { 
   X, 
   Flag, 
@@ -94,16 +95,16 @@ export default function ReportModal({
     ? 'Book Proposal'
     : 'Story Submission';
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-      {/* Backdrop */}
-      <div 
-        onClick={onClose}
-        className="fixed inset-0 bg-[#1E110A]/70 backdrop-blur-sm transition-opacity animate-fade-in"
-      />
-
+  const modalContent = (
+    <div 
+      onClick={onClose}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm overflow-y-auto"
+    >
       {/* Modal Card */}
-      <div className="relative w-full max-w-lg bg-[#F8F4EC] rounded-3xl shadow-2xl border-2 border-[#D8C8B0] overflow-hidden z-10 flex flex-col my-auto animate-slide-down">
+      <div 
+        onClick={(e) => e.stopPropagation()}
+        className="relative w-full max-w-lg bg-[#F8F4EC] rounded-2xl shadow-2xl border-2 border-[#D8C8B0] overflow-hidden z-10 flex flex-col my-auto animate-slide-down"
+      >
         
         {/* Header */}
         <div className="bg-[#2D1B0F] text-[#F8F4EC] p-5 sm:p-6 border-b-2 border-[#C48B47]/40 relative">
@@ -248,4 +249,6 @@ export default function ReportModal({
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : modalContent;
 }
