@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Clock, Calendar, CheckCircle2, Flame, Flag } from 'lucide-react';
+import { getNextUpcomingTuesday } from '../utils/cycleUtils';
 
 export default function CycleCountdown({ 
   targetDate, 
+  activeWeek = 1,
+  cycle,
   meetingTitle,
   milestones, 
   currentPages = 0, 
@@ -14,7 +17,7 @@ export default function CycleCountdown({
   // Compute dynamic weekday and review heading
   const meetingDateObj = targetDate ? new Date(typeof targetDate === 'string' && !targetDate.includes('T') ? `${targetDate}T12:30:00+03:00` : targetDate) : null;
   const isValidDate = meetingDateObj && !isNaN(meetingDateObj.getTime());
-  const weekdayName = isValidDate ? meetingDateObj.toLocaleDateString(undefined, { weekday: 'long' }) : 'Review';
+  const weekdayName = isValidDate ? meetingDateObj.toLocaleDateString(undefined, { weekday: 'long' }) : 'Tuesday';
   const displayCountdownHeading = meetingTitle || `${weekdayName} Review (12:30 PM)`;
 
   useEffect(() => {
@@ -37,10 +40,11 @@ export default function CycleCountdown({
         }
       }
 
-      if (!targetMs || isNaN(targetMs)) {
-        setIsMeetingActive(false);
-        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-        return;
+      // If target is missing, invalid, or far in the future (> 7.5 days from now), target the next upcoming Tuesday review
+      const maxMs = 7.5 * 24 * 60 * 60 * 1000;
+      if (!targetMs || isNaN(targetMs) || (targetMs - now > maxMs)) {
+        const nextTue = getNextUpcomingTuesday();
+        targetMs = nextTue.getTime();
       }
 
       const difference = targetMs - now;
@@ -76,11 +80,11 @@ export default function CycleCountdown({
   const safeTotal = Number(totalPages) || 300;
   const progressPercent = safeTotal > 0 ? Math.min(Math.max(0, Math.round((safeCurrent / safeTotal) * 100)), 100) : 0;
 
-  const week1Label = milestones?.week1?.label || 'Week 1 Target';
+  const week1Label = milestones?.week1?.label || 'Week 1 Milestone';
   const week1Pages = milestones?.week1?.pages || `Pages 1–${Math.round(safeTotal * 0.33)} (33%)`;
   const week2Label = milestones?.week2?.label || 'Week 2 Target';
   const week2Pages = milestones?.week2?.pages || `Pages ${Math.round(safeTotal * 0.33) + 1}–${Math.round(safeTotal * 0.66)} (66%)`;
-  const week3Label = milestones?.week3?.label || 'Week 3 Final';
+  const week3Label = milestones?.week3?.label || 'Week 3 Final Sprint';
   const week3Pages = milestones?.week3?.pages || `Pages ${Math.round(safeTotal * 0.66) + 1}–${safeTotal} (100%)`;
 
   return (
@@ -144,17 +148,43 @@ export default function CycleCountdown({
 
         {/* 3-Week Target Markers */}
         <div className="grid grid-cols-3 gap-2 text-[10px] text-[#F8F4EC]/80 pt-1">
-          <div className="text-left space-y-0.5 border-l-2 border-[#4A2F1B] pl-2">
-            <span className="block font-bold text-[#F8F4EC]/90">{week1Label}</span>
-            <span className="text-[#F8F4EC]/60">{week1Pages}</span>
+          <div className={`text-left space-y-0.5 border-l-2 pl-2 transition-colors ${
+            activeWeek === 1
+              ? 'border-[#C48B47] text-[#C48B47]'
+              : 'border-[#4A2F1B] text-[#F8F4EC]/80'
+          }`}>
+            <span className={`block font-bold ${activeWeek === 1 ? 'text-[#C48B47]' : 'text-[#F8F4EC]/90'}`}>
+              {week1Label}
+            </span>
+            <span className={activeWeek === 1 ? 'text-[#F8F4EC] font-semibold' : 'text-[#F8F4EC]/60'}>
+              {week1Pages}
+            </span>
           </div>
-          <div className="text-center space-y-0.5 border-l-2 border-[#C48B47] pl-2">
-            <span className="block font-bold text-[#C48B47]">{week2Label}</span>
-            <span className="text-[#F8F4EC] font-semibold">{week2Pages}</span>
+
+          <div className={`text-center space-y-0.5 border-l-2 pl-2 transition-colors ${
+            activeWeek === 2
+              ? 'border-[#C48B47] text-[#C48B47]'
+              : 'border-[#4A2F1B] text-[#F8F4EC]/80'
+          }`}>
+            <span className={`block font-bold ${activeWeek === 2 ? 'text-[#C48B47]' : 'text-[#F8F4EC]/90'}`}>
+              {week2Label}
+            </span>
+            <span className={activeWeek === 2 ? 'text-[#F8F4EC] font-semibold' : 'text-[#F8F4EC]/60'}>
+              {week2Pages}
+            </span>
           </div>
-          <div className="text-right space-y-0.5 border-l-2 border-[#4A2F1B] pl-2">
-            <span className="block font-bold text-[#F8F4EC]/90">{week3Label}</span>
-            <span className="text-[#F8F4EC]/60">{week3Pages}</span>
+
+          <div className={`text-right space-y-0.5 border-l-2 pl-2 transition-colors ${
+            activeWeek === 3
+              ? 'border-[#C48B47] text-[#C48B47]'
+              : 'border-[#4A2F1B] text-[#F8F4EC]/80'
+          }`}>
+            <span className={`block font-bold ${activeWeek === 3 ? 'text-[#C48B47]' : 'text-[#F8F4EC]/90'}`}>
+              {week3Label}
+            </span>
+            <span className={activeWeek === 3 ? 'text-[#F8F4EC] font-semibold' : 'text-[#F8F4EC]/60'}>
+              {week3Pages}
+            </span>
           </div>
         </div>
       </div>

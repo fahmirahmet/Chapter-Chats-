@@ -13,6 +13,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import CycleCountdown from './CycleCountdown';
+import { computeCycleMilestoneSchedule } from '../utils/cycleUtils';
 
 // ─── Always-visible Thursday Quiz Banner ─────────────────────────────────────
 // Renders even when no quiz is published (shows a calm "coming soon" pill).
@@ -127,28 +128,19 @@ export default function HeroCurrentlyReading({
 
   // ── STATE A: Active Reading Sprint ──────────────────────────────────────────
   if (cycle && book) {
-    const milestones = cycle.milestones || {};
-    const week1Label = milestones?.week1?.label || 'Week 1 Milestone';
-    const week1Pages = milestones?.week1?.pages || 'Pages 1–100';
-    const week2Label = milestones?.week2?.label || 'Week 2 Target';
-    const week2Pages = milestones?.week2?.pages || 'Pages 101–200';
-    const week3Label = milestones?.week3?.label || 'Week 3 Sprint';
-    const week3Pages = milestones?.week3?.pages || 'Pages 201–End';
+    const totalPages = Number(book.totalPages || book.total_pages) || 300;
+    const schedule = computeCycleMilestoneSchedule(cycle);
+    const activeWeek = schedule.activeWeek;
+    const safeMilestones = schedule.milestones;
+    const activeMilestone = schedule.activeMilestone;
+    const targetMeetingDate = schedule.nextMeetingDate;
 
-    const targetMeetingDate = cycle.meeting_date || cycle.targetTuesdayMeeting || null;
     const meetingTitle = cycle.meeting_title || cycle.display_title || null;
-    const meetingDateObj = targetMeetingDate ? new Date(typeof targetMeetingDate === 'string' && !targetMeetingDate.includes('T') ? `${targetMeetingDate}T12:30:00+03:00` : targetMeetingDate) : null;
-    const weekdayName = meetingDateObj && !isNaN(meetingDateObj.getTime()) ? meetingDateObj.toLocaleDateString(undefined, { weekday: 'long' }) : 'Review';
+    const meetingDateObj = new Date(targetMeetingDate);
+    const weekdayName = meetingDateObj && !isNaN(meetingDateObj.getTime()) ? meetingDateObj.toLocaleDateString(undefined, { weekday: 'long' }) : 'Tuesday';
     const displayReviewTitle = meetingTitle || `${weekdayName} Review`;
 
     const userReadingProgressPages = Number(cycle.userReadingProgressPages) || 0;
-    const totalPages = Number(book.totalPages || book.total_pages) || 300;
-
-    const safeMilestones = {
-      week1: { label: week1Label, pages: week1Pages },
-      week2: { label: week2Label, pages: week2Pages },
-      week3: { label: week3Label, pages: week3Pages },
-    };
 
     return (
       <section className="relative overflow-hidden rounded-3xl bg-[#F6EFE2] border-2 border-[#D8C8B0] shadow-[0_8px_30px_rgb(45,27,15,0.06)] p-6 sm:p-8 md:p-10 transition-all duration-300">
@@ -186,11 +178,11 @@ export default function HeroCurrentlyReading({
                   Active Target Window:
                 </span>
                 <span className="font-bold text-white bg-[#A35C33] px-2.5 py-0.5 rounded text-[11px] shadow-xs">
-                  {week2Label}
+                  {activeMilestone.label}
                 </span>
               </div>
               <p className="text-xs text-[#2D1B0F]/80 font-medium">
-                Read <strong className="text-[#A35C33]">{week2Pages}</strong> before upcoming {displayReviewTitle} at 12:30 PM.
+                Read <strong className="text-[#A35C33]">{activeMilestone.pages}</strong> before upcoming {displayReviewTitle} at 12:30 PM.
               </p>
             </div>
 
@@ -226,6 +218,8 @@ export default function HeroCurrentlyReading({
             <div className="bg-[#342013] p-6 sm:p-7 rounded-3xl border-2 border-[#503320] shadow-xl text-[#F8F4EC]">
               <CycleCountdown
                 targetDate={targetMeetingDate}
+                activeWeek={activeWeek}
+                cycle={cycle}
                 meetingTitle={meetingTitle}
                 milestones={safeMilestones}
                 currentPages={userReadingProgressPages}

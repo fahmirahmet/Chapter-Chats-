@@ -19,8 +19,17 @@ function buildCycleData(raw, userPageRead) {
   const bookObj = data.book || {};
   return {
     activeCycle: {
+      ...data,
+      id: data.id,
       cycleNumber: data.id || 1,
-      targetTuesdayMeeting: data.meeting_date || data.start_date || null,
+      start_date: data.start_date,
+      meeting_date: data.meeting_date,
+      meeting_title: data.meeting_title,
+      display_title: data.display_title,
+      active_week: data.active_week,
+      target_tuesday: data.target_tuesday,
+      milestone_dates: data.milestone_dates,
+      targetTuesdayMeeting: data.target_tuesday || data.meeting_date || data.start_date || null,
       userReadingProgressPages: userPageRead || 0,
       book: {
         title: bookObj.title || 'Cycle Reading Selection',
@@ -31,9 +40,9 @@ function buildCycleData(raw, userPageRead) {
         coverImage: bookObj.cover_image || bookObj.cover_url || null,
       },
       milestones: data.milestones || {
-        week1: { label: 'Week 1', pages: `Pages 1–${Math.round((bookObj.total_pages || 300) * 0.33)}` },
-        week2: { label: 'Week 2', pages: `Pages ${Math.round((bookObj.total_pages || 300) * 0.33) + 1}–${Math.round((bookObj.total_pages || 300) * 0.66)}` },
-        week3: { label: 'Week 3', pages: `Pages ${Math.round((bookObj.total_pages || 300) * 0.66) + 1}–${bookObj.total_pages || 300}` },
+        week1: { label: 'Week 1 Milestone', pages: `1 to ${Math.round((bookObj.total_pages || 300) * 0.33)} (33%)`, percentage: 33 },
+        week2: { label: 'Week 2 Target', pages: `${Math.round((bookObj.total_pages || 300) * 0.33) + 1} to ${Math.round((bookObj.total_pages || 300) * 0.66)} (66%)`, percentage: 66 },
+        week3: { label: 'Week 3 Final Sprint', pages: `${Math.round((bookObj.total_pages || 300) * 0.66) + 1} to ${bookObj.total_pages || 300} (100%)`, percentage: 100 },
       },
     }
   };
