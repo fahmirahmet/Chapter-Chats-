@@ -60,6 +60,7 @@ export default function BookHouse() {
   const [isLoadingCycle, setIsLoadingCycle] = useState(true);
   const [selectedBookForGuide, setSelectedBookForGuide] = useState(null);
   const [toastMessage, setToastMessage] = useState(null);
+  const [heroCoverError, setHeroCoverError] = useState(false);
 
   // Executive Upload Modal State & Direct DOM Refs
   const [showUploadModal, setShowUploadModal] = useState(false);
@@ -119,10 +120,13 @@ export default function BookHouse() {
             totalPages: b.total_pages || b.totalPages || 320,
             genre: b.genre || 'Ethiopian Literature',
             synopsis: b.synopsis || '',
-            fileSize: b.file_size || '4.5 MB',
+            fileSize: b.file_size_formatted || (b.file_size ? `${(b.file_size / (1024 * 1024)).toFixed(1)} MB` : 'PDF'),
+            file_size: b.file_size,
+            file_size_formatted: b.file_size_formatted,
             downloadCount: b.download_count || 0,
             coverUrl: b.cover_url || b.cover_image || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=600&q=80',
-            pdfUrl: b.pdf_url || b.pdf_file || null,
+            pdfUrl: b.pdf_url || b.file_url || b.pdf_file || null,
+            file_url: b.file_url || b.pdf_url || b.pdf_file || null,
             guideUrl: b.guide_url || b.guide_file || null,
             discussionQuestions: [
               `How does the protagonist's core conflict reflect the broader theme of ${b.genre || 'the narrative'}?`,
@@ -171,10 +175,13 @@ export default function BookHouse() {
           totalPages: b.total_pages || b.totalPages || 300,
           genre: b.genre,
           synopsis: b.synopsis,
-          fileSize: b.file_size || '4.2 MB',
+          fileSize: b.file_size_formatted || (b.file_size ? `${(b.file_size / (1024 * 1024)).toFixed(1)} MB` : 'PDF'),
+          file_size: b.file_size,
+          file_size_formatted: b.file_size_formatted,
           downloadCount: b.download_count || 0,
           coverUrl: b.cover_url || b.cover_image || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=600&q=80',
-          pdfUrl: b.pdf_url || b.pdf_file || null,
+          pdfUrl: b.pdf_url || b.file_url || b.pdf_file || null,
+          file_url: b.file_url || b.pdf_url || b.pdf_file || null,
           guideUrl: b.guide_url || b.guide_file || null,
           discussionQuestions: [
             `How does the protagonist's core conflict reflect the broader theme of ${b.genre}?`,
@@ -211,18 +218,42 @@ export default function BookHouse() {
     const safeTitle = (book.title || 'Book').replace(/[^a-zA-Z0-9_-]/g, '_');
     const filename = `${safeTitle}_${isGuide ? 'Discussion_Guide' : 'Reading'}.pdf`;
 
+    const directUrl = isGuide 
+      ? (book.guideUrl || book.guide_url || book.guide_file)
+      : (book.pdfUrl || book.file_url || book.pdf_url || book.pdf_file);
+
     setToastMessage({
       type: 'info',
       text: `Downloading "${book.title}" ${fileLabel}...`
     });
 
     try {
-      const response = await apiClient.get(`/books/${book.id}/download/${fileType}/`, {
-        responseType: 'blob'
-      });
+      let downloadBlob = null;
+      // If book has a direct cloud URL on Supabase Storage, fetch directly
+      if (directUrl && typeof directUrl === 'string' && directUrl.startsWith('http')) {
+        try {
+          const directRes = await fetch(directUrl);
+          if (directRes.ok) {
+            downloadBlob = await directRes.blob();
+          }
+        } catch {
+          // CORS or network fallback to backend proxy endpoint
+        }
+      }
 
-      const blob = response.data instanceof Blob ? response.data : new Blob([response.data], { type: 'application/pdf' });
-      const downloadUrl = window.URL.createObjectURL(blob);
+      // Download from Django streaming endpoint with attachment headers
+      if (!downloadBlob) {
+        const response = await apiClient.get(`/books/${book.id}/download/${fileType}/`, {
+          responseType: 'blob'
+        });
+        downloadBlob = response.data instanceof Blob ? response.data : new Blob([response.data], { type: 'application/pdf' });
+      }
+
+      if (!downloadBlob || downloadBlob.size === 0) {
+        throw new Error('Downloaded file is empty');
+      }
+
+      const downloadUrl = window.URL.createObjectURL(downloadBlob);
       const link = document.createElement('a');
       link.href = downloadUrl;
       link.setAttribute('download', filename);
@@ -495,13 +526,24 @@ export default function BookHouse() {
           <div className="relative z-10 flex flex-col lg:flex-row gap-8 items-stretch justify-between">
             {/* Left Cover Preview Column */}
             <div className="w-full lg:w-72 shrink-0 flex flex-col items-center">
-              <div className="relative group w-48 sm:w-56 lg:w-full aspect-[2/3] rounded-2xl overflow-hidden shadow-2xl border-2 border-[#C48B47]/60">
-                <img
-                  src={activeCycle.book.coverUrl}
-                  alt={activeCycle.book.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#1A0E06]/90 via-transparent to-transparent flex items-end p-4">
+              <div className="aspect-[2/3] w-full max-w-[220px] mx-auto overflow-hidden rounded-xl bg-stone-900/10 dark:bg-stone-800 flex items-center justify-center relative shadow-2xl border-2 border-[#C48B47]/60">
+                {!heroCoverError && activeCycle.book.coverUrl ? (
+                  <img
+                    src={activeCycle.book.coverUrl}
+                    alt={activeCycle.book.title}
+                    onError={() => setHeroCoverError(true)}
+                    className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
+                  />
+                ) : (
+                  <div className="flex flex-col items-center justify-center p-4 text-center space-y-2 select-none">
+                    <BookOpen className="w-12 h-12 text-[#C48B47]" />
+                    <span className="text-xs font-serif font-bold text-[#FFF8EE] line-clamp-2">{activeCycle.book.title}</span>
+                    <span className="text-[10px] uppercase font-bold text-[#2D1B0F] bg-[#C48B47] px-2 py-0.5 rounded">
+                      {activeCycle.book.genre}
+                    </span>
+                  </div>
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-[#1A0E06]/90 via-transparent to-transparent flex items-end p-4 pointer-events-none">
                   <span className="text-[11px] font-bold text-[#F8F4EC] bg-[#A35C33] px-2.5 py-1 rounded-md shadow-xs">
                     {activeCycle.book.genre}
                   </span>
@@ -512,7 +554,7 @@ export default function BookHouse() {
                 <Layers className="w-3.5 h-3.5 text-[#C48B47]" />
                 <span>{activeCycle.book.totalPages} Pages Total</span>
                 <span>•</span>
-                <span>{activeCycle.book.fileSize}</span>
+                <span>{activeCycle.book.file_size_formatted || (activeCycle.book.file_size ? `${(activeCycle.book.file_size / (1024 * 1024)).toFixed(1)} MB` : (activeCycle.book.fileSize || 'PDF'))}</span>
               </div>
             </div>
 

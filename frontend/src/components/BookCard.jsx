@@ -1,8 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { BookOpen, Download, FileText, Sparkles, Trash2 } from 'lucide-react';
 
 export default function BookCard({ book, onOpenGuide, onDownloadPdf, isExecutive = false, onDeleteBook = null }) {
+  const [imgError, setImgError] = useState(false);
   const isCurrentCycle = book.cycleFeatured === 'Active Cycle Pick';
+
+  const rawCover = book.coverUrl || book.cover_url || book.coverImage || book.cover_image;
+  const coverSrc = rawCover || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=600&q=80';
+
+  const fileSizeDisplay = book.file_size_formatted || (book.file_size ? `${(book.file_size / (1024 * 1024)).toFixed(1)} MB` : (book.fileSize || 'PDF'));
 
   return (
     <div className={`group bg-white rounded-3xl border transition-all duration-300 flex flex-col justify-between overflow-hidden relative ${
@@ -10,62 +16,76 @@ export default function BookCard({ book, onOpenGuide, onDownloadPdf, isExecutive
         ? 'border-2 border-brand-accent shadow-warm-md hover:shadow-warm-lg ring-4 ring-brand-cream/30' 
         : 'border-brand-cream/80 shadow-warm-sm hover:shadow-warm-md hover:border-brand-accent/60'
     }`}>
-      {/* Cover Image & Top Badges Header */}
-      <div className="relative h-48 w-full bg-brand-dark/90 overflow-hidden">
-        <img
-          src={book.coverUrl || book.coverImage || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=600&q=80'}
-          alt={book.title}
-          className="w-full h-full object-cover opacity-85 group-hover:scale-105 group-hover:opacity-95 transition-all duration-500"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-brand-dark via-brand-dark/30 to-transparent" />
+      {/* Top Badges & Actions Strip */}
+      <div className="p-4 pb-2 bg-brand-surface/40 flex items-center justify-between gap-2 border-b border-brand-cream/40">
+        <span className="text-[10px] font-bold uppercase tracking-wider bg-white text-brand-dark px-2.5 py-1 rounded-full shadow-xs border border-brand-cream/60">
+          {book.genre}
+        </span>
+        
+        <div className="flex items-center gap-1.5 ml-auto">
+          {book.cycleFeatured && (
+            <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-xs flex items-center gap-1 ${
+              isCurrentCycle
+                ? 'bg-brand-accent text-brand-dark font-extrabold border border-brand-dark'
+                : 'bg-brand-dark text-brand-cream border border-brand-cream/30'
+            }`}>
+              {isCurrentCycle && <Sparkles className="w-3 h-3 text-brand-dark fill-brand-dark" />}
+              {book.cycleFeatured}
+            </span>
+          )}
 
-        {/* Top Badges */}
-        <div className="absolute top-3 left-3 right-3 flex items-center justify-between gap-2 z-10">
-          <span className="text-[10px] font-bold uppercase tracking-wider bg-brand-surface/90 text-brand-dark px-2.5 py-1 rounded-full backdrop-blur-md shadow-sm border border-brand-cream/40">
-            {book.genre}
-          </span>
-          
-          <div className="flex items-center gap-1.5 ml-auto">
-            {book.cycleFeatured && (
-              <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-sm flex items-center gap-1 backdrop-blur-md ${
-                isCurrentCycle
-                  ? 'bg-brand-accent text-brand-dark font-extrabold border border-brand-dark'
-                  : 'bg-brand-dark/80 text-brand-cream border border-brand-cream/30'
-              }`}>
-                {isCurrentCycle && <Sparkles className="w-3 h-3 text-brand-dark fill-brand-dark" />}
-                {book.cycleFeatured}
+          {isExecutive && onDeleteBook && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onDeleteBook(book);
+              }}
+              type="button"
+              title={`Remove "${book.title}" from library`}
+              className="p-1.5 rounded-full bg-red-950/80 hover:bg-red-600 text-red-200 hover:text-white border border-red-400/40 backdrop-blur-md transition-all shadow-md cursor-pointer"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Standard 2:3 Book Cover Wrapper */}
+      <div className="p-4 pt-3 bg-brand-surface/20 flex flex-col items-center">
+        <div className="aspect-[2/3] w-full max-w-[220px] mx-auto overflow-hidden rounded-xl bg-stone-900/10 dark:bg-stone-800 flex items-center justify-center relative shadow-sm border border-brand-cream/80">
+          {!imgError && coverSrc ? (
+            <img
+              src={coverSrc}
+              alt={book.title}
+              onError={() => setImgError(true)}
+              className="w-full h-full object-contain group-hover:scale-105 transition-all duration-500"
+            />
+          ) : (
+            <div className="flex flex-col items-center justify-center p-4 text-center space-y-2 select-none">
+              <div className="w-12 h-12 rounded-xl bg-brand-cream/80 flex items-center justify-center text-brand-primary">
+                <BookOpen className="w-6 h-6 text-brand-primary" />
+              </div>
+              <span className="text-xs font-serif font-bold text-brand-dark line-clamp-2">{book.title}</span>
+              <span className="text-[10px] uppercase font-bold text-brand-secondary bg-brand-cream/60 px-2 py-0.5 rounded">
+                {book.genre || 'Reading Copy'}
               </span>
-            )}
-
-            {isExecutive && onDeleteBook && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDeleteBook(book);
-                }}
-                type="button"
-                title={`Remove "${book.title}" from library`}
-                className="p-1.5 rounded-full bg-red-950/80 hover:bg-red-600 text-red-200 hover:text-white border border-red-400/40 backdrop-blur-md transition-all shadow-md cursor-pointer"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-              </button>
-            )}
-          </div>
+            </div>
+          )}
         </div>
 
-        {/* Bottom Title overlay over cover */}
-        <div className="absolute bottom-3 left-4 right-4 z-10 space-y-0.5">
-          <h3 className="font-serif font-bold text-lg text-white leading-tight drop-shadow-md line-clamp-1">
+        {/* Title and Author Header below cover */}
+        <div className="mt-3 text-center space-y-0.5 px-2 w-full">
+          <h3 className="font-serif font-bold text-base text-brand-dark leading-tight line-clamp-1" title={book.title}>
             {book.title}
           </h3>
-          <p className="text-xs text-brand-cream/90 font-medium drop-shadow">
+          <p className="text-xs text-brand-dark/70 font-medium">
             by {book.author}
           </p>
         </div>
       </div>
 
       {/* Card Content Body */}
-      <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
+      <div className="p-5 pt-2 flex-1 flex flex-col justify-between space-y-4">
         <p className="text-xs text-brand-dark/80 leading-relaxed line-clamp-3">
           {book.synopsis}
         </p>
@@ -79,7 +99,7 @@ export default function BookCard({ book, onOpenGuide, onDownloadPdf, isExecutive
           <span>•</span>
           <span className="flex items-center gap-1">
             <FileText className="w-3.5 h-3.5 text-brand-primary" />
-            {book.fileSize} PDF
+            {fileSizeDisplay}
           </span>
         </div>
       </div>

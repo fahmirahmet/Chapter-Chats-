@@ -38,6 +38,39 @@ import { useAuth } from '../context/AuthContext';
 import { mockAboutData } from '../data/mockAboutData';
 import DeleteConfirmModal from '../components/DeleteConfirmModal';
 
+function getInitials(name) {
+  if (!name) return 'CC';
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return 'CC';
+  if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+function MemberAvatar({ src, alt, name, className = "w-20 h-20 aspect-square object-cover rounded-2xl border-2 border-[#C48B47] shadow-sm mx-auto" }) {
+  const [hasError, setHasError] = useState(false);
+  const initials = getInitials(name);
+
+  if (!src || hasError) {
+    return (
+      <div 
+        className={`${className} aspect-square rounded-2xl flex items-center justify-center bg-gradient-to-br from-[#2D1B0F] to-[#4A2E1B] text-[#FFF8EE] font-serif font-bold text-lg select-none shrink-0 shadow-sm`}
+        title={alt || name}
+      >
+        <span>{initials}</span>
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={src}
+      alt={alt || name}
+      onError={() => setHasError(true)}
+      className={`${className} aspect-square object-cover rounded-2xl shrink-0`}
+    />
+  );
+}
+
 export default function About() {
   const { user } = useAuth();
   const canDelete = Boolean(user?.is_staff || user?.is_superuser || ['OWNER', 'ADMIN', 'OFFICER'].includes(user?.role));
@@ -539,10 +572,11 @@ export default function About() {
               {/* Founder Photo & Emblem */}
               <div className="lg:col-span-4 flex flex-col items-center text-center space-y-3.5">
                 <div className="relative">
-                  <img
+                  <MemberAvatar
                     src={founder.avatar}
                     alt={founder.name}
-                    className="w-36 h-36 sm:w-44 sm:h-44 rounded-3xl object-cover border-4 border-[#C48B47] shadow-xl"
+                    name={founder.name}
+                    className="w-36 h-36 sm:w-44 sm:h-44 aspect-square object-cover rounded-3xl border-4 border-[#C48B47] shadow-xl"
                   />
                   <div className="absolute -bottom-3 -right-2 bg-[#A35C33] text-white p-2 rounded-2xl border-2 border-[#C48B47] shadow-md">
                     <Crown className="w-5 h-5 text-[#C48B47]" />
@@ -637,10 +671,11 @@ export default function About() {
                   key={pres.id}
                   className="bg-[#F6EFE2] p-5 sm:p-6 rounded-3xl border-2 border-[#D8C8B0] shadow-sm hover:shadow-md transition-all flex flex-col sm:flex-row items-start sm:items-center gap-4 relative group"
                 >
-                  <img
+                  <MemberAvatar
                     src={avatar}
                     alt={pres.name}
-                    className="w-20 h-20 rounded-2xl object-cover border-2 border-[#A35C33] shadow-sm shrink-0"
+                    name={pres.name}
+                    className="w-20 h-20 aspect-square object-cover rounded-2xl border-2 border-[#A35C33] shadow-sm shrink-0"
                   />
                   <div className="space-y-1.5 flex-1 w-full">
                     <div className="flex items-center justify-between gap-2">
@@ -724,10 +759,11 @@ export default function About() {
                   className="bg-white p-5 rounded-3xl border border-[#D8C8B0] shadow-sm hover:shadow-md transition-all space-y-4 flex flex-col justify-between"
                 >
                   <div className="space-y-3">
-                    <img
+                    <MemberAvatar
                       src={avatar}
                       alt={exec.name}
-                      className="w-20 h-20 rounded-2xl object-cover border-2 border-[#C48B47] shadow-sm mx-auto"
+                      name={exec.name}
+                      className="w-20 h-20 aspect-square object-cover rounded-2xl border-2 border-[#C48B47] shadow-sm mx-auto"
                     />
                     <div className="text-center space-y-0.5">
                       <h4 className="font-serif font-bold text-base text-[#2D1B0F]">{exec.name}</h4>

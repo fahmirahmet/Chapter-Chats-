@@ -38,6 +38,7 @@ function buildCycleData(raw, userPageRead) {
         genre: bookObj.genre || 'Curated Literature',
         synopsis: bookObj.synopsis || 'Reading cycle targets will be reviewed at the upcoming Tuesday meeting.',
         coverImage: bookObj.cover_image || bookObj.cover_url || null,
+        coverUrl: bookObj.cover_url || bookObj.cover_image || null,
       },
       milestones: data.milestones || {
         week1: { label: 'Week 1 Milestone', pages: `1 to ${Math.round((bookObj.total_pages || 300) * 0.33)} (33%)`, percentage: 33 },

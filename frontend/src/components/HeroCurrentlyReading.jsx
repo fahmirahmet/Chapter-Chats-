@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import {
   BookOpen,
@@ -102,6 +102,7 @@ export default function HeroCurrentlyReading({
   onOpenQuiz = null,
   onDeletePoll = null,
 }) {
+  const [coverError, setCoverError] = useState(false);
   // Normalise activeQuiz: support both new "activeQuiz" object and legacy "quizStatus" shape
   const resolvedQuiz = activeQuiz
     ? activeQuiz
@@ -147,28 +148,56 @@ export default function HeroCurrentlyReading({
         <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
           {/* Left Column */}
           <div className="lg:col-span-6 space-y-6">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-[#E5D6BF] text-[#5C3B1E] border border-[#BAA587] text-xs font-bold uppercase tracking-wider shadow-inner">
-                <Sparkles className="w-3.5 h-3.5 text-[#A35C33]" />
-                Cycle #{cycle.cycleNumber || 1} Active Book
-              </span>
-              <span className="text-xs font-semibold text-[#2D1B0F]/70 bg-[#EFE7DA] px-3 py-1 rounded-full border border-[#D8C8B0]">
-                {book.genre || 'Curated Literature'}
-              </span>
-            </div>
+            <div className="flex flex-col sm:flex-row gap-6 items-start">
+              {/* Standard 2:3 Book Cover Wrapper */}
+              <div className="w-full sm:w-44 shrink-0">
+                <div className="aspect-[2/3] w-full max-w-[220px] mx-auto overflow-hidden rounded-xl bg-stone-900/10 dark:bg-stone-800 flex items-center justify-center relative shadow-md border border-[#D8C8B0]">
+                  {!coverError && (book.coverUrl || book.coverImage || book.cover_url || book.cover_image) ? (
+                    <img
+                      src={book.coverUrl || book.coverImage || book.cover_url || book.cover_image}
+                      alt={book.title || 'Cycle Reading Selection'}
+                      onError={() => setCoverError(true)}
+                      className="w-full h-full object-contain"
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center p-4 text-center space-y-2 select-none">
+                      <BookOpen className="w-10 h-10 text-[#A35C33]" />
+                      <span className="text-xs font-serif font-bold text-[#2D1B0F] line-clamp-2">{book.title}</span>
+                      <span className="text-[10px] uppercase font-bold text-[#5C3B1E] bg-[#E5D6BF] px-2 py-0.5 rounded">
+                        {book.genre || 'Curated Literature'}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
 
-            <div className="space-y-2.5">
-              <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight leading-tight text-[#2D1B0F]">
-                {book.title || 'Cycle Reading Selection'}
-              </h1>
-              <p className="text-sm font-semibold text-[#A35C33] italic flex items-center gap-2">
-                <span>by {book.author || 'Selected Author'}</span>
-                <span className="text-[#D8C8B0]">•</span>
-                <span className="text-[#2D1B0F]/60 font-normal">{totalPages} Pages Total</span>
-              </p>
-              <p className="text-xs sm:text-sm text-[#2D1B0F]/80 leading-relaxed max-w-xl">
-                {book.synopsis || `Reading cycle targets will be reviewed at the upcoming ${displayReviewTitle.toLowerCase()} meetup.`}
-              </p>
+              {/* Book Details */}
+              <div className="flex-1 space-y-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E5D6BF] text-[#5C3B1E] border border-[#BAA587] text-xs font-bold uppercase tracking-wider shadow-inner">
+                    <Sparkles className="w-3.5 h-3.5 text-[#A35C33]" />
+                    Cycle #{cycle.cycleNumber || 1} Active Book
+                  </span>
+                  <span className="text-xs font-semibold text-[#2D1B0F]/70 bg-[#EFE7DA] px-3 py-1 rounded-full border border-[#D8C8B0]">
+                    {book.genre || 'Curated Literature'}
+                  </span>
+                </div>
+
+                <div className="space-y-1.5">
+                  <h1 className="font-serif text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight leading-tight text-[#2D1B0F]">
+                    {book.title || 'Cycle Reading Selection'}
+                  </h1>
+                  <p className="text-sm font-semibold text-[#A35C33] italic flex items-center gap-2">
+                    <span>by {book.author || 'Selected Author'}</span>
+                    <span className="text-[#D8C8B0]">•</span>
+                    <span className="text-[#2D1B0F]/60 font-normal">{totalPages} Pages Total</span>
+                  </p>
+                </div>
+
+                <p className="text-xs sm:text-sm text-[#2D1B0F]/80 leading-relaxed line-clamp-3">
+                  {book.synopsis || `Reading cycle targets will be reviewed at the upcoming ${displayReviewTitle.toLowerCase()} meetup.`}
+                </p>
+              </div>
             </div>
 
             <div className="p-4 rounded-xl bg-[#EDE2CF] border border-[#CBB79B] space-y-2 shadow-xs">
