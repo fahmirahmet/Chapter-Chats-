@@ -122,8 +122,29 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-MEDIA_URL = '/media/'
+# Cloud & Persistent Storage (Supabase Storage)
+SUPABASE_PROJECT_REF = os.getenv('SUPABASE_PROJECT_REF', 'dayhifjcvcsnuclulbuj')
+SUPABASE_URL = os.getenv('SUPABASE_URL', f'https://{SUPABASE_PROJECT_REF}.supabase.co').rstrip('/')
+SUPABASE_KEY = os.getenv('SUPABASE_KEY') or os.getenv('SUPABASE_SERVICE_KEY') or os.getenv('SUPABASE_ANON_KEY', '')
+SUPABASE_MEDIA_BUCKET = os.getenv('SUPABASE_MEDIA_BUCKET', 'media')
+USE_SUPABASE_STORAGE = os.getenv('USE_SUPABASE_STORAGE', 'true').lower() in ('true', '1', 'yes')
+
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+if USE_SUPABASE_STORAGE and (SUPABASE_KEY or not DEBUG):
+    MEDIA_URL = f"{SUPABASE_URL}/storage/v1/object/public/{SUPABASE_MEDIA_BUCKET}/"
+else:
+    MEDIA_URL = '/media/'
+
+STORAGES = {
+    "default": {
+        "BACKEND": "config.storage.SupabaseMediaStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
+DEFAULT_FILE_STORAGE = "config.storage.SupabaseMediaStorage"
 
 # CORS Configuration
 _cors_origins_env = os.getenv(

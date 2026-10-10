@@ -160,11 +160,27 @@ class ClubGalleryPhotoSerializer(serializers.ModelSerializer):
     uploaded_by_name = serializers.CharField(source='uploaded_by.full_name', read_only=True)
     uploaded_by_id = serializers.IntegerField(source='uploaded_by.id', read_only=True)
     image_url = serializers.SerializerMethodField()
+    category = serializers.CharField(source='event_name', required=False)
 
     class Meta:
         model = ClubGalleryPhoto
-        fields = ('id', 'image', 'image_url', 'caption', 'event_name', 'uploaded_by', 'uploaded_by_username', 'uploaded_by_name', 'uploaded_by_id', 'uploaded_at')
+        fields = ('id', 'image', 'image_url', 'caption', 'event_name', 'category', 'uploaded_by', 'uploaded_by_username', 'uploaded_by_name', 'uploaded_by_id', 'uploaded_at')
         read_only_fields = ('uploaded_by', 'uploaded_by_username', 'uploaded_by_name', 'uploaded_by_id', 'uploaded_at', 'image_url')
+
+    def to_internal_value(self, data):
+        data = data.copy() if hasattr(data, 'copy') else dict(data)
+        if 'category' in data and not data.get('event_name'):
+            data['event_name'] = data['category']
+        elif 'event_name' in data and not data.get('category'):
+            data['category'] = data['event_name']
+        return super().to_internal_value(data)
+
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        val = ret.get('event_name') or ret.get('category') or ''
+        ret['event_name'] = val
+        ret['category'] = val
+        return ret
 
     def get_image_url(self, obj):
         if obj.image:

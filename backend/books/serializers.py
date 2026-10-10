@@ -6,6 +6,9 @@ class BookSerializer(serializers.ModelSerializer):
     guide_url = serializers.SerializerMethodField()
     cover_url = serializers.SerializerMethodField()
 
+    file_url = serializers.SerializerMethodField()
+    file_size_formatted = serializers.ReadOnlyField()
+
     class Meta:
         model = Book
         fields = (
@@ -15,14 +18,20 @@ class BookSerializer(serializers.ModelSerializer):
             'total_pages', 
             'genre', 
             'synopsis', 
+            'file_size',
+            'file_size_formatted',
             'pdf_file', 
             'guide_file', 
             'pdf_url',
+            'file_url',
             'guide_url',
             'cover_image', 
             'cover_url',
             'created_at'
         )
+
+    def get_file_url(self, obj):
+        return self.get_pdf_url(obj)
 
     def get_pdf_url(self, obj):
         request = self.context.get('request')

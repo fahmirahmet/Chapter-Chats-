@@ -217,12 +217,15 @@ class BookListView(APIView):
         if isinstance(cover_image, str):
             cover_image = None
 
+        file_size = getattr(pdf_file, 'size', 0) if pdf_file else 0
+
         book = Book.objects.create(
             title=title,
             author=author,
             genre=genre,
             total_pages=total_pages,
             synopsis=synopsis,
+            file_size=file_size,
             pdf_file=pdf_file,
             guide_file=guide_file,
             cover_image=cover_image
@@ -258,20 +261,43 @@ class BookDownloadView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # 1. If target file exists on disk
-        if target_file and target_file.name and os.path.exists(target_file.path):
+        if target_file and target_file.name:
+            # 1. Try opening via storage backend (supports local and storage backends)
             try:
+                f = target_file.open('rb')
                 response = FileResponse(
-                    open(target_file.path, 'rb'),
+                    f,
                     content_type='application/pdf',
                     as_attachment=True,
                     filename=filename
                 )
+                response['Content-Disposition'] = f'attachment; filename="{filename}"'
+                response['Content-Type'] = 'application/pdf'
                 return response
             except Exception:
                 pass
 
-        # 2. Check for sample dummy PDF in media/books_pdf/sample.pdf
+            # 2. If stored remotely (e.g., Supabase Storage / S3) with absolute HTTP URL, redirect
+            if hasattr(target_file, 'url') and target_file.url and target_file.url.startswith('http'):
+                from django.http import HttpResponseRedirect
+                return HttpResponseRedirect(target_file.url)
+
+            # 3. If target file exists on local filesystem
+            try:
+                if hasattr(target_file, 'path') and os.path.exists(target_file.path):
+                    response = FileResponse(
+                        open(target_file.path, 'rb'),
+                        content_type='application/pdf',
+                        as_attachment=True,
+                        filename=filename
+                    )
+                    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+                    response['Content-Type'] = 'application/pdf'
+                    return response
+            except Exception:
+                pass
+
+        # 4. Check for sample dummy PDF in media/books_pdf/sample.pdf
         sample_pdf_path = os.path.join(settings.MEDIA_ROOT, 'books_pdf', 'sample.pdf')
         if os.path.exists(sample_pdf_path):
             response = FileResponse(
@@ -280,30 +306,15 @@ class BookDownloadView(APIView):
                 as_attachment=True,
                 filename=filename
             )
+            response['Content-Disposition'] = f'attachment; filename="{filename}"'
+            response['Content-Type'] = 'application/pdf'
             return response
 
-        # 3. Dynamic minimal fallback PDF binary stream
-        minimal_pdf = (
-            b"%PDF-1.4\n"
-            b"1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n"
-            b"2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj\n"
-            b"3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 612 792]/Resources<<>>/Contents 4 0 R>>endobj\n"
-            b"4 0 obj<</Length 55>>stream\n"
-            b"BT /F1 14 Tf 70 700 Td (Chapter and Chats Reading Material) ET\n"
-            b"endstream\n"
-            b"endobj\n"
-            b"xref\n0 5\n"
-            b"0000000000 65535 f \n"
-            b"0000000009 00000 n \n"
-            b"0000000058 00000 n \n"
-            b"0000000115 00000 n \n"
-            b"0000000214 00000 n \n"
-            b"trailer<</Size 5/Root 1 0 R>>\n"
-            b"startxref\n320\n%%EOF\n"
+        # 5. File is not uploaded or available
+        return Response(
+            {"error": f"The requested {file_type} file for '{book.title}' is not available on storage."},
+            status=status.HTTP_404_NOT_FOUND
         )
-        response = HttpResponse(minimal_pdf, content_type='application/pdf')
-        response['Content-Disposition'] = f'attachment; filename="{filename}"'
-        return response
 
 
 class BookDetailView(APIView):

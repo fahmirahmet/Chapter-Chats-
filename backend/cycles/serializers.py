@@ -7,10 +7,74 @@ class ReadingCycleSerializer(serializers.ModelSerializer):
     milestones = serializers.SerializerMethodField()
     meeting_weekday = serializers.SerializerMethodField()
     display_title = serializers.SerializerMethodField()
+    active_week = serializers.SerializerMethodField()
+    target_tuesday = serializers.SerializerMethodField()
+    milestone_dates = serializers.SerializerMethodField()
 
     class Meta:
         model = ReadingCycle
-        fields = ('id', 'book', 'start_date', 'meeting_date', 'meeting_title', 'meeting_weekday', 'display_title', 'is_active', 'milestones')
+        fields = (
+            'id', 
+            'book', 
+            'start_date', 
+            'meeting_date', 
+            'meeting_title', 
+            'meeting_weekday', 
+            'display_title', 
+            'is_active', 
+            'milestones',
+            'active_week',
+            'target_tuesday',
+            'milestone_dates'
+        )
+
+    def _get_milestone_datetimes(self, obj):
+        from django.utils import timezone
+        from datetime import datetime, time, timedelta
+
+        tz = timezone.get_current_timezone()
+        start = obj.start_date or timezone.now().date()
+        w1_dt = timezone.make_aware(datetime.combine(start + timedelta(days=7), time(12, 30)), tz)
+        w2_dt = timezone.make_aware(datetime.combine(start + timedelta(days=14), time(12, 30)), tz)
+        end_date = obj.meeting_date or (start + timedelta(days=21))
+        w3_dt = timezone.make_aware(datetime.combine(end_date, time(12, 30)), tz)
+        return w1_dt, w2_dt, w3_dt
+
+    def get_milestone_dates(self, obj):
+        w1_dt, w2_dt, w3_dt = self._get_milestone_datetimes(obj)
+        return {
+            'week1': w1_dt.isoformat(),
+            'week2': w2_dt.isoformat(),
+            'week3': w3_dt.isoformat(),
+        }
+
+    def get_active_week(self, obj):
+        from django.utils import timezone
+        from datetime import timedelta
+        now = timezone.now()
+        w1_dt, w2_dt, w3_dt = self._get_milestone_datetimes(obj)
+        meeting_duration = timedelta(hours=4)
+
+        if now <= w1_dt + meeting_duration:
+            return 1
+        elif now <= w2_dt + meeting_duration:
+            return 2
+        else:
+            return 3
+
+    def get_target_tuesday(self, obj):
+        from django.utils import timezone
+        from datetime import timedelta
+        now = timezone.now()
+        w1_dt, w2_dt, w3_dt = self._get_milestone_datetimes(obj)
+        meeting_duration = timedelta(hours=4)
+
+        if now <= w1_dt + meeting_duration:
+            return w1_dt.isoformat()
+        elif now <= w2_dt + meeting_duration:
+            return w2_dt.isoformat()
+        else:
+            return w3_dt.isoformat()
 
     def get_meeting_weekday(self, obj):
         if obj.meeting_date:
