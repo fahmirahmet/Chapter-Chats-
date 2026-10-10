@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { NavLink } from 'react-router-dom';
 import { 
@@ -90,7 +90,7 @@ export default function About() {
 
   const [openFaqId, setOpenFaqId] = useState('faq-1');
   const [gallery, setGallery] = useState(mockGallery || []);
-  const [galleryFilter, setGalleryFilter] = useState('ALL');
+  const [galleryFilter, setGalleryFilter] = useState('All Moments');
   const [isGalleryLoading, setIsGalleryLoading] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState(null);
   const [photoToDelete, setPhotoToDelete] = useState(null);
@@ -338,7 +338,8 @@ export default function About() {
             id: p.id,
             image: p.image_url || p.image,
             caption: p.caption,
-            event_name: p.event_name,
+            event_name: p.event_name || p.category,
+            category: p.category || p.event_name,
             uploaded_at: p.uploaded_at,
             uploaded_by_username: p.uploaded_by_username || 'Club Officer'
           }));
@@ -399,13 +400,20 @@ export default function About() {
     }
   };
 
-  const filteredGallery = gallery.filter(photo => {
-    if (galleryFilter === 'ALL') return true;
-    if (galleryFilter === 'Meetup') return photo.event_name?.toLowerCase().includes('meetup') || photo.event_name?.toLowerCase().includes('tuesday');
-    if (galleryFilter === 'Campfire') return photo.event_name?.toLowerCase().includes('campfire') || photo.event_name?.toLowerCase().includes('review');
-    if (galleryFilter === 'Donation') return photo.event_name?.toLowerCase().includes('donation') || photo.event_name?.toLowerCase().includes('drive');
-    return true;
-  });
+  const dynamicCategories = useMemo(() => {
+    const list = Array.from(
+      new Set(gallery.map((item) => (item.category || item.event_name)?.trim()).filter(Boolean))
+    );
+    return ['All Moments', ...list];
+  }, [gallery]);
+
+  const filteredGallery = useMemo(() => {
+    if (galleryFilter === 'All Moments' || galleryFilter === 'ALL') return gallery;
+    return gallery.filter(photo => {
+      const cat = (photo.category || photo.event_name || '').trim();
+      return cat.toLowerCase() === galleryFilter.toLowerCase();
+    });
+  }, [gallery, galleryFilter]);
 
   return (
     <div className="space-y-12 animate-fade-in pb-12">
@@ -849,23 +857,18 @@ export default function About() {
 
           {/* Filter Pills */}
           <div className="flex flex-wrap items-center gap-1.5 bg-[#EFE7DA] p-1.5 rounded-2xl border border-[#D8C8B0]">
-            {[
-              { id: 'ALL', label: 'All Moments' },
-              { id: 'Meetup', label: 'Tuesday Reviews' },
-              { id: 'Campfire', label: 'Campfire Nights' },
-              { id: 'Donation', label: 'Book Drives' },
-            ].map(tab => (
+            {dynamicCategories.map(cat => (
               <button
-                key={tab.id}
-                onClick={() => setGalleryFilter(tab.id)}
+                key={cat}
+                onClick={() => setGalleryFilter(cat)}
                 type="button"
                 className={`px-3 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                  galleryFilter === tab.id
+                  galleryFilter === cat
                     ? 'bg-[#2D1B0F] text-[#FFF8EE] shadow-xs'
                     : 'text-[#2D1B0F]/70 hover:text-[#2D1B0F] hover:bg-[#E5DBCB]'
                 }`}
               >
-                {tab.label}
+                {cat}
               </button>
             ))}
           </div>
@@ -889,7 +892,7 @@ export default function About() {
                 <div className="relative h-56 w-full overflow-hidden bg-[#1A0E06]">
                   <img
                     src={photo.image}
-                    alt={photo.event_name || photo.caption}
+                    alt={photo.category || photo.event_name || photo.caption}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     loading="lazy"
                   />
@@ -898,7 +901,7 @@ export default function About() {
                   {/* Event Pill */}
                   <div className="absolute top-3 left-3">
                     <span className="text-[10px] font-bold uppercase tracking-wider bg-[#2D1B0F]/85 text-[#C48B47] px-2.5 py-1 rounded-full border border-[#C48B47]/40 shadow-xs backdrop-blur-xs">
-                      {photo.event_name || 'Club Moment'}
+                      {photo.category || photo.event_name || 'Club Moment'}
                     </span>
                   </div>
 
@@ -925,7 +928,7 @@ export default function About() {
 
                 <div className="p-4 bg-white space-y-1.5 border-t border-[#D8C8B0]">
                   <h4 className="font-serif font-bold text-sm text-[#2D1B0F] leading-snug group-hover:text-[#A35C33] transition-colors line-clamp-1">
-                    {photo.event_name || 'Event Snapshot'}
+                    {photo.category || photo.event_name || 'Event Snapshot'}
                   </h4>
                   <p className="text-xs text-[#2D1B0F]/75 leading-relaxed line-clamp-2">
                     {photo.caption}
@@ -960,7 +963,7 @@ export default function About() {
               <div className="relative max-h-[60vh] bg-black overflow-hidden flex items-center justify-center">
                 <img
                   src={selectedPhoto.image}
-                  alt={selectedPhoto.event_name}
+                  alt={selectedPhoto.category || selectedPhoto.event_name}
                   className="max-h-[60vh] w-auto object-contain mx-auto"
                 />
               </div>
@@ -969,7 +972,7 @@ export default function About() {
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex items-center gap-2">
                     <span className="text-[10px] font-bold uppercase tracking-wider bg-[#A35C33] text-white px-2.5 py-0.5 rounded-full">
-                      {selectedPhoto.event_name || 'Club Archive'}
+                      {selectedPhoto.category || selectedPhoto.event_name || 'Club Archive'}
                     </span>
                     <span className="text-xs text-[#2D1B0F]/60">
                       {selectedPhoto.uploaded_at ? new Date(selectedPhoto.uploaded_at).toLocaleDateString() : 'Club Event'}
@@ -988,7 +991,7 @@ export default function About() {
                   )}
                 </div>
                 <h3 className="font-serif font-bold text-xl text-[#2D1B0F]">
-                  {selectedPhoto.event_name}
+                  {selectedPhoto.category || selectedPhoto.event_name}
                 </h3>
                 <p className="text-sm text-[#2D1B0F]/85 leading-relaxed">
                   {selectedPhoto.caption}
@@ -1007,7 +1010,7 @@ export default function About() {
           isOpen={Boolean(photoToDelete)}
           title="Delete Gallery Photo"
           message="Are you sure you want to permanently remove this photo from the Club Gallery?"
-          itemTitle={photoToDelete?.event_name || photoToDelete?.caption}
+          itemTitle={photoToDelete?.category || photoToDelete?.event_name || photoToDelete?.caption}
           dangerNote="This will permanently delete the photograph file from the club archives."
           confirmLabel="Delete Photo"
           isDeleting={isDeletingPhoto}

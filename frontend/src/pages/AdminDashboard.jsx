@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useSearchParams, NavLink } from 'react-router-dom';
 import { 
@@ -241,7 +241,8 @@ export default function AdminDashboard() {
 
   // Tab: Gallery Upload Desk State
   const [galleryForm, setGalleryForm] = useState({
-    event_name: 'Tuesday Review Meetup',
+    category: 'Tuesday Review Meetup (Library Hall B)',
+    event_name: 'Tuesday Review Meetup (Library Hall B)',
     caption: ''
   });
   const [galleryPhotoFile, setGalleryPhotoFile] = useState(null);
@@ -250,6 +251,21 @@ export default function AdminDashboard() {
   const [isGalleryLoading, setIsGalleryLoading] = useState(true);
   const [adminPhotoToDelete, setAdminPhotoToDelete] = useState(null);
   const [isAdminDeletingPhoto, setIsAdminDeletingPhoto] = useState(false);
+
+  const existingCategories = useMemo(() => {
+    const fromPhotos = galleryPhotos
+      .map(p => (p.category || p.event_name)?.trim())
+      .filter(Boolean);
+    const defaults = [
+      "Tuesday Review Meetup (Library Hall B)",
+      "Campfire Review Night",
+      "Campus Book Donation Drive",
+      "Courtyard Reading Sprint",
+      "Annual Literary Gala",
+      "Executive Council Workshop"
+    ];
+    return Array.from(new Set([...defaults, ...fromPhotos]));
+  }, [galleryPhotos]);
 
 
   // Tab 5: Members & Roster State
@@ -964,9 +980,11 @@ export default function AdminDashboard() {
 
     setIsUploadingPhoto(true);
     try {
+      const categoryVal = (galleryForm.category || galleryForm.event_name || 'Club Meetup').trim();
       const formData = new FormData();
       formData.append('image', galleryPhotoFile);
-      formData.append('event_name', galleryForm.event_name.trim());
+      formData.append('event_name', categoryVal);
+      formData.append('category', categoryVal);
       formData.append('caption', galleryForm.caption.trim());
 
       const res = await apiClient.post('/activities/gallery/', formData, {
@@ -975,7 +993,7 @@ export default function AdminDashboard() {
 
       if (res.data) {
         showToast('📸 Photo uploaded to Moments & Memories gallery!');
-        setGalleryForm({ event_name: 'Tuesday Review Meetup', caption: '' });
+        setGalleryForm({ category: 'Tuesday Review Meetup (Library Hall B)', event_name: 'Tuesday Review Meetup (Library Hall B)', caption: '' });
         setGalleryPhotoFile(null);
         fetchGalleryPhotos();
       }
@@ -1922,18 +1940,22 @@ export default function AdminDashboard() {
                   <label className="block text-xs font-bold text-[#2D1B0F] mb-1">
                     Event / Category *
                   </label>
-                  <select
-                    value={galleryForm.event_name}
-                    onChange={e => setGalleryForm({ ...galleryForm, event_name: e.target.value })}
-                    className="w-full px-4 py-3 bg-white border-2 border-[#D8C8B0] rounded-xl text-xs text-[#2D1B0F] focus:border-[#A35C33] focus:outline-none cursor-pointer"
-                  >
-                    <option value="Tuesday Review Meetup">Tuesday Review Meetup (Library Hall B)</option>
-                    <option value="Campfire Review Night">Campfire Review Night</option>
-                    <option value="Campus Book Drive">Campus Book Donation Drive</option>
-                    <option value="Courtyard Reading Sprint">Courtyard Reading Sprint</option>
-                    <option value="Annual Literary Honors Gala">Annual Literary Gala</option>
-                    <option value="Executive Council Workshop">Executive Council Workshop</option>
-                  </select>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      list="category-suggestions"
+                      value={galleryForm.category || galleryForm.event_name || ''}
+                      onChange={(e) => setGalleryForm({ ...galleryForm, category: e.target.value, event_name: e.target.value })}
+                      placeholder="Type a new category or pick a suggestion..."
+                      className="w-full px-4 py-2 rounded-xl border border-stone-300 dark:border-stone-700 bg-stone-50 dark:bg-stone-900 focus:outline-none focus:ring-2 focus:ring-[#8c4a2f] text-xs text-[#2D1B0F] dark:text-[#FFF8EE]"
+                      required
+                    />
+                    <datalist id="category-suggestions">
+                      {existingCategories.map((cat) => (
+                        <option key={cat} value={cat} />
+                      ))}
+                    </datalist>
+                  </div>
                 </div>
 
                 <div>
@@ -2022,12 +2044,12 @@ export default function AdminDashboard() {
                     <div className="relative h-44 bg-black overflow-hidden">
                       <img
                         src={photo.image_url || photo.image}
-                        alt={photo.event_name}
+                        alt={photo.category || photo.event_name}
                         className="w-full h-full object-cover"
                       />
                       <div className="absolute top-2 left-2">
                         <span className="text-[10px] font-bold uppercase bg-[#2D1B0F]/80 text-[#C48B47] px-2 py-0.5 rounded">
-                          {photo.event_name}
+                          {photo.category || photo.event_name}
                         </span>
                       </div>
                     </div>

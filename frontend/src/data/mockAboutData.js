@@ -91,6 +91,7 @@ export const mockAboutData = {
       image: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=800&q=80',
       caption: 'Evening literary campfire review session discussing existential philosophy beneath the stars.',
       event_name: 'Campfire Review Night',
+      category: 'Campfire Review Night',
       uploaded_at: '2026-08-20T18:30:00Z',
       uploaded_by_username: 'Yukabed'
     },
@@ -98,7 +99,8 @@ export const mockAboutData = {
       id: 'gal-02',
       image: 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=800&q=80',
       caption: 'Annual book donation drive handing over 300+ collected volumes to the university community library.',
-      event_name: 'Campus Book Drive',
+      event_name: 'Campus Book Donation Drive',
+      category: 'Campus Book Donation Drive',
       uploaded_at: '2026-08-10T14:15:00Z',
       uploaded_by_username: 'Bethlehem'
     },
@@ -106,7 +108,8 @@ export const mockAboutData = {
       id: 'gal-03',
       image: 'https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?auto=format&fit=crop&w=800&q=80',
       caption: 'Passionate Tuesday literary debate in Library Hall B examining moral agency in literature.',
-      event_name: 'Tuesday Review Meetup',
+      event_name: 'Tuesday Review Meetup (Library Hall B)',
+      category: 'Tuesday Review Meetup (Library Hall B)',
       uploaded_at: '2026-07-28T13:00:00Z',
       uploaded_by_username: 'Tewodros'
     },
@@ -115,6 +118,7 @@ export const mockAboutData = {
       image: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&w=800&q=80',
       caption: 'Quiet collaborative reading sprint in the student center courtyard prior to Thursday quizzes.',
       event_name: 'Courtyard Reading Sprint',
+      category: 'Courtyard Reading Sprint',
       uploaded_at: '2026-07-15T16:45:00Z',
       uploaded_by_username: 'Amina'
     },
@@ -123,6 +127,7 @@ export const mockAboutData = {
       image: 'https://images.unsplash.com/photo-1532012197267-da84d127e765?auto=format&fit=crop&w=800&q=80',
       caption: 'Unboxing fresh hardcover acquisitions and worksheet study kits for the Book House.',
       event_name: 'Book House Acquisition',
+      category: 'Book House Acquisition',
       uploaded_at: '2026-06-30T11:20:00Z',
       uploaded_by_username: 'Amina'
     },
@@ -130,7 +135,8 @@ export const mockAboutData = {
       id: 'gal-06',
       image: 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=800&q=80',
       caption: 'End-of-semester literary gala honoring active readers, top quizmasters, and creative micro-authors.',
-      event_name: 'Annual Literary Honors Gala',
+      event_name: 'Annual Literary Gala',
+      category: 'Annual Literary Gala',
       uploaded_at: '2026-06-12T19:00:00Z',
       uploaded_by_username: 'Yukabed'
     }
